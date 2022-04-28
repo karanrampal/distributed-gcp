@@ -1,0 +1,26 @@
+name: attrpred-env
+channels:
+  - pytorch
+dependencies:
+  - python=3.8
+  - ipykernel
+  - build
+  - numpy
+  - matplotlib
+  - pyyaml
+  - pytorch
+  - torchvision
+  - cudatoolkit=11.3  # replace with 'cudatoolkit=11.3' if you have a gpu or 'cpuonly' if cpu
+  - pandas
+  - tensorboard
+  - tqdm
+  - tabulate
+  - pytest
+  - pytest-cov
+  - pytest-mock
+  - mypy
+  - pylint
+  - black
+  - isort
+  - pip:
+    - torch-tb-profiler
