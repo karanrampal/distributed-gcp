@@ -17,10 +17,10 @@ test:
 format:
 	black src tests
 	isort src tests
-	mypy src tests
+	mypy src tests --disable-error-code import # Apache beam import error
 
 lint:
-	pylint -j 6 src tests
+	pylint -j 6 src tests -d E0611 # Apache beam import error
 
 clean:
 	rm -rf __pycache__ .coverage .mypy_cache .pytest_cache *.log
