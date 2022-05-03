@@ -4,6 +4,10 @@ CONDAENV := environment.yml
 install: environment.yml
 	conda env create -f $(CONDAENV)
 
+install_ci: requirements.txt
+	pip install --upgrade pip &&\
+		pip install -r requirements.txt
+
 build:
 	python -m build
 
