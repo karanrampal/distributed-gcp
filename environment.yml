@@ -3,8 +3,8 @@ channels:
   - pytorch
 dependencies:
   - python=3.8
+  - pip
   - ipykernel
-  - build
   - numpy
   - matplotlib
   - pyyaml
@@ -14,7 +14,6 @@ dependencies:
   - pandas
   - tensorboard
   - scikit-learn
-  - apache-beam
   - tqdm
   - tabulate
   - pytest
@@ -25,4 +24,6 @@ dependencies:
   - black
   - isort
   - pip:
+    - build
+    - apache-beam
     - torch-tb-profiler
