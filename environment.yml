@@ -11,11 +11,10 @@ dependencies:
   - pyyaml
   - pytorch
   - torchvision
-  - cudatoolkit=11.3  # replace with 'cudatoolkit=11.3' if you have a gpu or 'cpuonly' if cpu
+  - cpuonly  # 'cudatoolkit=11.3' if you have a gpu else 'cpuonly'
   - pandas
   - tensorboard
   - scikit-learn
-  - apache-beam
   - tqdm
   - tabulate
   - pytest
@@ -27,3 +26,4 @@ dependencies:
   - isort
   - pip:
     - torch-tb-profiler
+    - apache-beam[gcp,docs,test,dataframe]

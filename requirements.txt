@@ -7,7 +7,7 @@ torchvision
 pandas
 tensorboard
 scikit-learn
-apache-beam
+apache-beam[gcp,docs,test,dataframe]
 tqdm
 tabulate
 pytest
