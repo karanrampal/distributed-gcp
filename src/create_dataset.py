@@ -5,7 +5,7 @@ import argparse
 import os
 from typing import List, Tuple
 
-from apache_beam import Pipeline
+from apache_beam import dataframe, Pipeline
 from apache_beam.dataframe.io import read_csv, read_parquet
 from apache_beam.options.pipeline_options import PipelineOptions
 
@@ -33,6 +33,21 @@ def arg_parser() -> Tuple[argparse.Namespace, List[str]]:
         default="gs://hdl-tables/dma/product_article_datamart/*.parquet",
         type=str,
         help="Padma directory",
+    )
+    parser.add_argument(
+        "-l",
+        "--labels",
+        nargs="+",
+        default=["fitted",
+                 "regularfit",
+                 "slimfit",
+                 "oversized",
+                 "skinnyfit",
+                 "relaxedfit",
+                 "loosefit",
+                 "superskinnyfit",
+                 "musclefit"],
+        help="List of labels",
     )
     parser.add_argument(
         "-o",
@@ -78,12 +93,13 @@ def main() -> None:
         data = data.drop(axis=1, labels=["product_code", "article_code"])
         data = data[~data["product_fit"].str.contains("[", regex=False)]
 
-        # Create output data
+        # Merge castor data to get output
         out = castors.merge(
             data.set_index("castor"), left_on="castor", right_index=True, how="inner"
         )
-        # ToDo convert string labels to ints
-        # out["labels"] = out["product_fit"].astype("category").cat.codes
+        # Convert string labels to ints
+        out["labels"] = out["product_fit"].map(dict(zip(known_args.labels,
+                                                    range(len(known_args.labels)))))
 
         # ToDo Split data into training and test dataset
         # cval = StratifiedGroupKFold(n_splits=2)
