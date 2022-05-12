@@ -20,7 +20,7 @@ format:
 	mypy src tests --disable-error-code import # Apache beam import error
 
 lint:
-	pylint -j 6 src tests -d E0611 # Apache beam import error
+	pylint -j 6 src tests --ignore .ipynb_checkpoints -d E0611,W0511 # Apache beam and fixme
 
 clean:
 	rm -rf __pycache__ .coverage .mypy_cache .pytest_cache *.log
