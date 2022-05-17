@@ -1,4 +1,6 @@
 build
+fsspec
+gcsfs
 numpy
 matplotlib
 pyyaml
