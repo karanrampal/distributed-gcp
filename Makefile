@@ -17,10 +17,12 @@ test:
 format:
 	black src tests
 	isort src tests
-	mypy src tests --disable-error-code import # Apache beam import error
+	mypy src tests --disable-error-code import\
+		--disable-error-code attr-defined # missing library stubs, attr-defined
 
 lint:
-	pylint -j 6 src tests --ignore .ipynb_checkpoints -d E0611,W0511 # Apache beam and fixme
+	pylint -j 6 src tests --ignore .ipynb_checkpoints\
+		-d E1101,E0611,W0511 # Beam and fixme
 
 clean:
 	rm -rf __pycache__ .coverage .mypy_cache .pytest_cache *.log
