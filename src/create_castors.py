@@ -2,10 +2,13 @@
 """Script for creating castors metadata"""
 
 import argparse
+import logging
 import os
 
 import gcsfs
 import pandas as pd
+
+from utils.utils import set_logger
 
 
 def arg_parser() -> argparse.Namespace:
@@ -39,17 +42,21 @@ def arg_parser() -> argparse.Namespace:
 def main() -> None:
     """Main function"""
     args = arg_parser()
+    set_logger()
 
     num = len(args.root)
 
     gfs = gcsfs.GCSFileSystem(project=args.proj_name)
 
+    logging.info("List image paths")
     file_list = gfs.glob(args.root + "**/*.jpg", recursive=True)
     castors = [int(os.path.basename(path)[:-4]) for path in file_list]
     path_list = [path[num:] for path in file_list]
 
+    logging.info("Create dataframe")
     out = pd.DataFrame(data={"path": path_list, "castor": castors})
 
+    logging.info("Write csv file")
     out.to_csv(os.path.join(args.outdir, "castors1.csv"), index=False)
 
 
