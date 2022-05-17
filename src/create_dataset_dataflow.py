@@ -5,7 +5,7 @@ import argparse
 import os
 from typing import List, Tuple
 
-from apache_beam import dataframe, Pipeline
+from apache_beam import Pipeline
 from apache_beam.dataframe.io import read_csv, read_parquet
 from apache_beam.options.pipeline_options import PipelineOptions
 
@@ -38,15 +38,17 @@ def arg_parser() -> Tuple[argparse.Namespace, List[str]]:
         "-l",
         "--labels",
         nargs="+",
-        default=["fitted",
-                 "regularfit",
-                 "slimfit",
-                 "oversized",
-                 "skinnyfit",
-                 "relaxedfit",
-                 "loosefit",
-                 "superskinnyfit",
-                 "musclefit"],
+        default=[
+            "fitted",
+            "regularfit",
+            "slimfit",
+            "oversized",
+            "skinnyfit",
+            "relaxedfit",
+            "loosefit",
+            "superskinnyfit",
+            "musclefit",
+        ],
         help="List of labels",
     )
     parser.add_argument(
@@ -77,7 +79,7 @@ def main() -> None:
 
         # Transform padma table
         padma = padma.drop_duplicates(keep="any")
-#        padma.castor = padma.castor.astype(int)
+        #        padma.castor = padma.castor.astype(int)
 
         # Transform pim table
         pim = pim.dropna(axis=0, subset=["article_code", "product_fit"])
@@ -99,8 +101,8 @@ def main() -> None:
             data.set_index("castor"), left_on="castor", right_index=True, how="inner"
         )
         # Convert string labels to ints
-#        out["labels"] = out["product_fit"].map(dict(zip(known_args.labels,
-#                                                    range(len(known_args.labels)))))
+        #        out["labels"] = out["product_fit"].map(dict(zip(known_args.labels,
+        #                                                    range(len(known_args.labels)))))
 
         # ToDo Split data into training and test dataset
         # cval = StratifiedGroupKFold(n_splits=2)
