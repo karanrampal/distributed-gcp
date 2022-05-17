@@ -16,4 +16,4 @@ subname="smle-vpc-subnet"
 subnet="https://www.googleapis.com/compute/v1/projects/${proj}/regions/${region}/subnetworks/${subname}"
 
 echo "Running script"
-python create_dataset.py --runner $runner --project $proj --region $region --temp_location $tmp_loc --subnetwork $subnet
+python create_dataset_dataflow.py --runner $runner --project $proj --region $region --temp_location $tmp_loc --subnetwork $subnet
