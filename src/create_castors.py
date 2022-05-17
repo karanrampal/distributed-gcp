@@ -3,13 +3,12 @@
 
 import argparse
 import os
-from typing import List, Tuple
 
 import gcsfs
 import pandas as pd
 
 
-def arg_parser() -> Tuple[argparse.Namespace, List[str]]:
+def arg_parser() -> argparse.Namespace:
     """Parse CLI argments"""
     parser = argparse.ArgumentParser(description="Create castors metadata")
     parser.add_argument(
