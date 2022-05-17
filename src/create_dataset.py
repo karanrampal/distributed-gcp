@@ -2,11 +2,14 @@
 """Script for dataset creation"""
 
 import argparse
+import logging
 import os
 from typing import List, Tuple
 
 import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
+
+from utils.utils import set_logger
 
 
 def arg_parser() -> Tuple[argparse.Namespace, List[str]]:
@@ -47,8 +50,10 @@ def arg_parser() -> Tuple[argparse.Namespace, List[str]]:
 def main() -> None:
     """Main function"""
     known_args, _ = arg_parser()
+    set_logger()
 
     # Read input data
+    logging.info("Read input tables")
     padma = pd.read_parquet(
         known_args.padma, columns=["product_code", "article_code", "castor"]
     )
@@ -58,27 +63,36 @@ def main() -> None:
     castors = pd.read_csv(known_args.castors)
 
     # Clean data tables
+    logging.info("Clean data")
     padma = padma.drop_duplicates()
     padma.castor = padma.castor.astype(int)
+    assert not padma.isna().any().any()
+
     pim = pim.dropna(axis=0, subset=["article_code", "product_fit"])
     pim = pim.drop_duplicates()
+    assert not pim.isna().any().any()
 
     # Merge pim and padma table
     data = pim.merge(padma, on=["product_code", "article_code"], how="left")
     data = data.drop(axis=1, labels=["product_code", "article_code"])
     data = data[~data["product_fit"].str.contains("[", regex=False)]
+    assert not data.isna().any().any()
 
     # Merge castor data to get output
+    logging.info("Create labels")
     out = castors.merge(data, on="castor", how="inner")
     out["labels"] = out["product_fit"].astype("category").cat.codes
+    assert not out.isna().any().any()
 
     # Split data into training and test dataset
+    logging.info("Split data")
     cval = StratifiedGroupKFold(n_splits=2)
     train_idxs, test_idxs = next(cval.split(out.path, out.labels, out.castor))
     train_fit = out.iloc[train_idxs, :]
     test_fit = out.iloc[test_idxs, :]
 
     # Create automl data
+    logging.info("Create gcp ai specific data")
     out_gcp = out[["path", "product_fit"]].copy()
     out_gcp["path"] = "gs://hm-images-bucket/images/" + out_gcp["path"]
     out_gcp["mode"] = "VALIDATION"
@@ -86,6 +100,7 @@ def main() -> None:
     out_gcp = out_gcp[["mode", "path", "product_fit"]]
 
     # Write output files
+    logging.info("Write to file")
     out.to_csv(os.path.join(known_args.out_dir, "full_fit1.csv"), index=False)
     train_fit.to_csv(os.path.join(known_args.out_dir, "train1.csv"), index=False)
     test_fit.to_csv(os.path.join(known_args.out_dir, "test1.csv"), index=False)
