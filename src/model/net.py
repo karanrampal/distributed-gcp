@@ -10,8 +10,8 @@ from utils.utils import Params
 
 
 class Net(tnn.Module):
-    """Extend the torch.nn.Module class to define a custom neural network
-    """
+    """Extend the torch.nn.Module class to define a custom neural network"""
+
     def __init__(self, params: Params) -> None:
         """Initialize the different layers in the neural network
         Args:
@@ -22,8 +22,7 @@ class Net(tnn.Module):
         self.model = models.resnet18(pretrained=True)
         in_feats = self.model.fc.in_features
         self.model.fc = tnn.Linear(
-            in_features=in_feats,
-            out_features=params.num_classes
+            in_features=in_feats, out_features=params.num_classes
         )
         self.dropout_rate = params.dropout
 
@@ -64,9 +63,7 @@ def avg_acc_gpu(outputs: torch.Tensor, labels: torch.Tensor) -> float:
 
 
 def avg_f1_score_gpu(
-    outputs: torch.Tensor,
-    labels: torch.Tensor,
-    eps: float = 1e-7
+    outputs: torch.Tensor, labels: torch.Tensor, eps: float = 1e-7
 ) -> float:
     """Compute the F1 score, given the outputs and labels for all images.
     Args:
@@ -93,8 +90,7 @@ def avg_f1_score_gpu(
 
 # Maintain all metrics required during training and evaluation.
 def get_metrics() -> Dict[str, Callable]:
-    """Returns a dictionary of all the metrics to be used
-    """
+    """Returns a dictionary of all the metrics to be used"""
     metrics: Dict[str, Callable] = {
         "accuracy": avg_acc_gpu,
         "f1-score": avg_f1_score_gpu,
