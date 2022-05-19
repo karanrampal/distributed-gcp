@@ -79,7 +79,7 @@ def main() -> None:
 
         # Transform padma table
         padma = padma.drop_duplicates(keep="any")
-        #        padma.castor = padma.castor.astype(int)
+        padma.castor = padma.castor.astype(int)
 
         # Transform pim table
         pim = pim.dropna(axis=0, subset=["article_code", "product_fit"])
@@ -94,25 +94,38 @@ def main() -> None:
         )
         data = data.drop(axis=1, labels=["product_code", "article_code"])
         data = data[~data["product_fit"].str.contains("[", regex=False)]
-        data.to_parquet(os.path.join(known_args.out_dir, "data.parquet"), index=False)
 
         # Merge castor data to get output
         out = castors.merge(
             data.set_index("castor"), left_on="castor", right_index=True, how="inner"
         )
         # Convert string labels to ints
-        #        out["labels"] = out["product_fit"].map(dict(zip(known_args.labels,
-        #                                                    range(len(known_args.labels)))))
+        out["labels"] = out["product_fit"].map(
+            dict(zip(known_args.labels, range(len(known_args.labels))))
+        )
 
-        # ToDo Split data into training and test dataset
-        # cval = StratifiedGroupKFold(n_splits=2)
+        # Split data into training and test dataset
+        tmp = out[["product_fit", "castor"]].drop_duplicates(keep="any")
+        sub_train = tmp.groupby("product_fit").sample(frac=0.8)
+        sub_train["is_train"] = True
+        final = out.merge(
+            sub_train[["castor", "is_train"]].set_index("castor"),
+            left_on="castor",
+            right_index=True,
+            how="left",
+        )
+        final.fillna(False, inplace=True)
+        train_fit = final.loc[
+            final.is_train, ["path", "castor", "product_fit", "labels"]
+        ]
+        test_fit = final.loc[
+            ~final.is_train, ["path", "castor", "product_fit", "labels"]
+        ]
 
         # Write output files
         out.to_csv(os.path.join(known_args.out_dir, "full_fit.csv"), index=False)
-
-        # ToDo write train test split
-        # train_fit.to_csv(os.path.join(known_args.out_dir, "train.csv"), index=False)
-        # test_fit.to_csv(os.path.join(known_args.out_dir, "test.csv"), index=False)
+        train_fit.to_csv(os.path.join(known_args.out_dir, "train.csv"), index=False)
+        test_fit.to_csv(os.path.join(known_args.out_dir, "test.csv"), index=False)
 
 
 if __name__ == "__main__":

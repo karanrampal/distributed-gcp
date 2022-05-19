@@ -7,7 +7,6 @@ import os
 from typing import List, Tuple
 
 import pandas as pd
-from sklearn.model_selection import StratifiedGroupKFold
 
 from utils.utils import set_logger
 
@@ -86,17 +85,22 @@ def main() -> None:
 
     # Split data into training and test dataset
     logging.info("Split data")
-    cval = StratifiedGroupKFold(n_splits=2)
-    train_idxs, test_idxs = next(cval.split(out.path, out.labels, out.castor))
-    train_fit = out.iloc[train_idxs, :]
-    test_fit = out.iloc[test_idxs, :]
+    tmp = out[["product_fit", "castor"]].drop_duplicates()
+    sub_train = tmp.groupby("product_fit").sample(frac=0.8)
+    sub_train["is_train"] = True
+    final = out.merge(sub_train[["castor", "is_train"]], on="castor", how="left")
+    final.fillna(False, inplace=True)
+    assert not final.isna().any().any()
+    train_fit = final.loc[final.is_train, ["path", "castor", "product_fit", "labels"]]
+    test_fit = final.loc[~final.is_train, ["path", "castor", "product_fit", "labels"]]
+    assert not set(train_fit.castor) & set(test_fit.castor)
 
     # Create automl data
     logging.info("Create gcp ai specific data")
     out_gcp = out[["path", "product_fit"]].copy()
     out_gcp["path"] = "gs://hm-images-bucket/images/" + out_gcp["path"]
     out_gcp["mode"] = "VALIDATION"
-    out_gcp.loc[train_idxs, "mode"] = "TRAINING"
+    out_gcp.loc[final.is_train, "mode"] = "TRAINING"
     out_gcp = out_gcp[["mode", "path", "product_fit"]]
 
     # Write output files
