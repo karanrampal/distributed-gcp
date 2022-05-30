@@ -105,11 +105,11 @@ def main() -> None:
 
     # Write output files
     logging.info("Write to file")
-    out.to_csv(os.path.join(known_args.out_dir, "full_fit1.csv"), index=False)
-    train_fit.to_csv(os.path.join(known_args.out_dir, "train1.csv"), index=False)
-    test_fit.to_csv(os.path.join(known_args.out_dir, "test1.csv"), index=False)
+    out.to_csv(os.path.join(known_args.out_dir, "full_fit.csv"), index=False)
+    train_fit.to_csv(os.path.join(known_args.out_dir, "train.csv"), index=False)
+    test_fit.to_csv(os.path.join(known_args.out_dir, "test.csv"), index=False)
     out_gcp.to_csv(
-        os.path.join(known_args.out_dir, "full_fit_gcai1.csv"),
+        os.path.join(known_args.out_dir, "full_fit_gcai.csv"),
         index=False,
         header=False,
     )

@@ -44,7 +44,7 @@ def main() -> None:
     args = arg_parser()
     set_logger()
 
-    num = len(args.root)
+    num = len(args.root[5:])
 
     gfs = gcsfs.GCSFileSystem(project=args.proj_name)
 
@@ -57,7 +57,7 @@ def main() -> None:
     out = pd.DataFrame(data={"path": path_list, "castor": castors})
 
     logging.info("Write csv file")
-    out.to_csv(os.path.join(args.outdir, "castors1.csv"), index=False)
+    out.to_csv(os.path.join(args.outdir, "castors.csv"), index=False)
 
 
 if __name__ == "__main__":
