@@ -25,7 +25,7 @@ lint:
 		-d E1101,E0611,W0511,R0801,R0913,R0914 # Beam and fixme
 
 clean:
-	rm -rf __pycache__ .coverage .mypy_cache .pytest_cache *.log
+	rm -r __pycache__ .coverage .mypy_cache .pytest_cache *.log .ipynb_checkpoints dist
 
 all: install lint test
 
