@@ -17,8 +17,8 @@ test:
 format:
 	black src tests
 	isort src tests
-	mypy src tests --disable-error-code import\
-		--disable-error-code attr-defined # missing library stubs, attr-defined
+	mypy src tests --disable-error-code import --disable-error-code attr-defined\
+		--disable-error-code call-arg # missing library stubs
 
 lint:
 	pylint -j 6 src tests --ignore .ipynb_checkpoints\
