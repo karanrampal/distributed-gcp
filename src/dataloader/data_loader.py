@@ -38,7 +38,7 @@ class AttributePreddataset(Dataset):
         row = self.data.iloc[idx]
 
         im_name = row["path"]
-        im_path = os.path.join(self.root, im_name)
+        im_path = os.path.join(self.root, "images", im_name)
         img = Image.open(im_path).convert("RGB")
 
         labels = torch.as_tensor(row["labels"], dtype=torch.int)
@@ -107,7 +107,7 @@ def get_dataloader(
             }
             shuffle = False
 
-        dataset = AttributePreddataset(root=params.root, **ds_dict)
+        dataset = AttributePreddataset(root=params.data_dir, **ds_dict)
         if params.distributed:
             sampler: Optional[DistributedSampler] = DistributedSampler(
                 dataset,
