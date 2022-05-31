@@ -2,7 +2,7 @@ name: attrpred-env
 channels:
   - pytorch
 dependencies:
-  - python=3.8
+  - python=3.7
   - pip
   - build
   - gcsfs

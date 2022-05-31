@@ -1,7 +1,7 @@
 SHELL := /bin/bash
-CONDAENV := environment.yml
+CONDAENV := environment.yaml
 
-install: environment.yml
+install: $(CONDAENV)
 	conda env create -f $(CONDAENV)
 
 install_ci: requirements.txt
@@ -22,7 +22,7 @@ format:
 
 lint:
 	pylint -j 6 src tests --ignore .ipynb_checkpoints\
-		-d E1101,E0611,W0511 # Beam and fixme
+		-d E1101,E0611,W0511,R0801,R0913,R0914 # Beam and fixme
 
 clean:
 	rm -rf __pycache__ .coverage .mypy_cache .pytest_cache *.log
