@@ -2,23 +2,29 @@ name: attrpred-env
 channels:
   - pytorch
 dependencies:
+  # System related
   - python=3.7
   - pip
   - build
-  - gcsfs
   - ipykernel
+  - gcsfs
+  - pyyaml
+  # Scipy stack
   - numpy
   - matplotlib
-  - pyyaml
+  - pandas
+  # Deep learning
   - pytorch
   - torchvision
   - cpuonly  # 'cudatoolkit=11.3' if you have a gpu else 'cpuonly'
-  - pandas
   - tensorboard
+  # Others
   - tqdm
+  # Testing
   - pytest
   - pytest-cov
   - pytest-mock
+  # Formating, linting
   - mypy
   - pylint
   - black

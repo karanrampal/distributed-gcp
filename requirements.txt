@@ -1,17 +1,24 @@
+# System related
 build
 gcsfs
+pyyaml
+# Scipy stack
 numpy
 matplotlib
-pyyaml
+pandas
+# Deep learning
 torch
 torchvision
-pandas
 tensorboard
+# Data processing
 apache-beam[gcp,docs,test,dataframe]
+# Others
 tqdm
+# Testing
 pytest
 pytest-cov
 pytest-mock
+# Formatiing, linting
 mypy
 pylint
 black
