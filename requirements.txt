@@ -1,5 +1,4 @@
 build
-fsspec
 gcsfs
 numpy
 matplotlib
@@ -8,10 +7,8 @@ torch
 torchvision
 pandas
 tensorboard
-scikit-learn
 apache-beam[gcp,docs,test,dataframe]
 tqdm
-tabulate
 pytest
 pytest-cov
 pytest-mock
