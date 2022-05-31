@@ -49,7 +49,7 @@ def args_parser() -> argparse.Namespace:
         type=bool,
         help="Whether to use distributed computing",
     )
-    parser.add_argument("-h", "--height", default=224, type=int, help="Image height")
+    parser.add_argument("--height", default=224, type=int, help="Image height")
     parser.add_argument("-w", "--width", default=224, type=int, help="Image width")
     parser.add_argument("--batch_size", default=256, type=int, help="Batch size")
     parser.add_argument(
