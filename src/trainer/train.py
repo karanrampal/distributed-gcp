@@ -295,7 +295,7 @@ def main() -> None:
         )
 
     criterion = loss_fn
-    metrics = get_metrics()
+    metrics = get_metrics(params)
 
     logging.info("Starting training for %d epoch(s)", params.num_epochs)
     train_and_evaluate(

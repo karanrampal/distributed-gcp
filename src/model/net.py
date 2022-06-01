@@ -1,5 +1,6 @@
 """Define the Network, loss and metrics"""
 
+from functools import partial
 from typing import Callable, Dict
 
 import torch
@@ -63,19 +64,20 @@ def avg_acc_gpu(outputs: torch.Tensor, labels: torch.Tensor) -> float:
 
 
 def avg_f1_score_gpu(
-    outputs: torch.Tensor, labels: torch.Tensor, eps: float = 1e-7
+    outputs: torch.Tensor, labels: torch.Tensor, num_classes: int, eps: float = 1e-7
 ) -> float:
     """Compute the F1 score, given the outputs and labels for all images.
     Args:
         outputs: Logits of the network
         labels: Ground truth labels
+        num_classes: Number of classes
         eps: Epsilon
     Returns:
         average f1 score
     """
     preds = (outputs).argmax(dim=1).to(torch.int64)
-    pred_ohe = tnn.functional.one_hot(preds)
-    label_ohe = tnn.functional.one_hot(labels.to(torch.int64))
+    pred_ohe = tnn.functional.one_hot(preds, num_classes)
+    label_ohe = tnn.functional.one_hot(labels, num_classes)
 
     true_pos = (label_ohe * pred_ohe).sum()
     false_pos = ((1 - label_ohe) * pred_ohe).sum()
@@ -89,10 +91,13 @@ def avg_f1_score_gpu(
 
 
 # Maintain all metrics required during training and evaluation.
-def get_metrics() -> Dict[str, Callable]:
-    """Returns a dictionary of all the metrics to be used"""
+def get_metrics(params: Params) -> Dict[str, Callable]:
+    """Returns a dictionary of all the metrics to be used
+    Args:
+        params: Hyperparameters
+    """
     metrics: Dict[str, Callable] = {
         "accuracy": avg_acc_gpu,
-        "f1-score": avg_f1_score_gpu,
+        "f1-score": partial(avg_f1_score_gpu, params.num_classes),
     }
     return metrics
