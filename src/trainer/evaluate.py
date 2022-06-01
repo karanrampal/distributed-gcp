@@ -109,7 +109,7 @@ def main() -> None:
     args = args_parser()
     params = utils.Params(vars(args))
 
-    writer = SummaryWriter(os.path.join(args.model_dir, "runs", "eval"))
+    writer = SummaryWriter(os.getenv("AIP_TENSORBOARD_LOG_DIR"))
 
     params.cuda = torch.cuda.is_available()
 
@@ -120,7 +120,7 @@ def main() -> None:
     else:
         params.device = "cpu"
 
-    utils.set_logger(os.path.join(args.model_dir, "evaluate.log"))
+    utils.set_logger()
 
     logging.info("Loading the dataset...")
 
