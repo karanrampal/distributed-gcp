@@ -57,7 +57,7 @@ def avg_acc_gpu(outputs: torch.Tensor, labels: torch.Tensor) -> float:
     Returns:
         average accuracy in [0,1]
     """
-    preds = outputs.argmax(dim=1).to(torch.int32)
+    preds = outputs.argmax(dim=1).to(torch.int64)
     avg_acc = (preds == labels).to(torch.float32).mean()
     return avg_acc.item()
 

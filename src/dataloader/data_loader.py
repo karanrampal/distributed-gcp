@@ -41,7 +41,7 @@ class AttributePreddataset(Dataset):
         im_path = os.path.join(self.root, "images", im_name)
         img = Image.open(im_path).convert("RGB")
 
-        labels = torch.as_tensor(row["labels"], dtype=torch.int)
+        labels = torch.as_tensor(row["labels"], dtype=torch.int64)
 
         if self.transforms is not None:
             img = self.transforms(img)
@@ -102,7 +102,7 @@ def get_dataloader(
             shuffle = not params.distributed
         else:
             ds_dict = {
-                "file_path": "annotations/test.ccsv",
+                "file_path": "annotations/test.csv",
                 "transforms": get_transform(False, params),
             }
             shuffle = False
