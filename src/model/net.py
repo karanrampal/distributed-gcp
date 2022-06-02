@@ -90,6 +90,23 @@ def avg_f1_score_gpu(
     return avg_f1.mean().item()
 
 
+def confusion_matrix(
+    outputs: torch.Tensor, labels: torch.Tensor, num_classes: int
+) -> torch.Tensor:
+    """Create confusion matrix
+    Args:
+        outputs: Logits of the network
+        labels: Ground truth labels
+        num_classes: Number of classes
+    Returns:
+        Confusion matrix as a tensor
+    """
+    conf_mat = torch.zeros((1, 1, num_classes, num_classes), dtype=torch.int64)
+    preds = (outputs).argmax(dim=1).to(torch.int64)
+    conf_mat[0, 0, labels, preds] += 1
+    return conf_mat
+
+
 # Maintain all metrics required during training and evaluation.
 def get_metrics(params: Params) -> Dict[str, Callable]:
     """Returns a dictionary of all the metrics to be used
