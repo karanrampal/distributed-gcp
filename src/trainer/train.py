@@ -10,7 +10,6 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
 
 from dataloader.data_loader import get_dataloader
 from model.net import Net, get_metrics, loss_fn
@@ -139,8 +138,7 @@ def train(
     summ = []
     loss_avg = utils.SmoothedValue(window_size=1, fmt="{global_avg:.3f}")
 
-    data_iterator = tqdm(dataloader, unit="batch")
-    for i, (train_batch, labels) in enumerate(data_iterator):
+    for i, (train_batch, labels) in enumerate(dataloader):
         if params.cuda:
             train_batch = train_batch.to(params.device)
             labels = labels.to(params.device)
@@ -163,12 +161,9 @@ def train(
             summary_batch["loss"] = loss.item()
             summ.append(summary_batch)
 
-            for key, val in summary_batch.items():
-                writer.add_scalar("train_" + key, val, epoch * len(data_iterator) + i)
+            writer.add_scalars("train", summary_batch, epoch * len(dataloader) + i)
 
         loss_avg.update(loss.item())
-
-        data_iterator.set_postfix(loss=f"{loss_avg}")
 
     scheduler.step()
     metrics_mean = {metric: np.mean([x[metric] for x in summ]) for metric in summ[0]}
