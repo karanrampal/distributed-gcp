@@ -79,15 +79,15 @@ def avg_f1_score_gpu(
     pred_ohe = tnn.functional.one_hot(preds, num_classes)
     label_ohe = tnn.functional.one_hot(labels, num_classes)
 
-    true_pos = (label_ohe * pred_ohe).sum()
-    false_pos = ((1 - label_ohe) * pred_ohe).sum()
-    false_neg = (label_ohe * (1 - pred_ohe)).sum()
+    true_pos = (label_ohe * pred_ohe).sum(0)
+    false_pos = ((1 - label_ohe) * pred_ohe).sum(0)
+    false_neg = (label_ohe * (1 - pred_ohe)).sum(0)
 
     precision = true_pos / (true_pos + false_pos + eps)
     recall = true_pos / (true_pos + false_neg + eps)
     avg_f1 = 2 * (precision * recall) / (precision + recall + eps)
 
-    return avg_f1.item()
+    return avg_f1.mean().item()
 
 
 # Maintain all metrics required during training and evaluation.
