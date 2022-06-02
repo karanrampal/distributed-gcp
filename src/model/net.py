@@ -98,6 +98,6 @@ def get_metrics(params: Params) -> Dict[str, Callable]:
     """
     metrics: Dict[str, Callable] = {
         "accuracy": avg_acc_gpu,
-        "f1-score": partial(avg_f1_score_gpu, params.num_classes),
+        "f1-score": partial(avg_f1_score_gpu, num_classes=params.num_classes),
     }
     return metrics
