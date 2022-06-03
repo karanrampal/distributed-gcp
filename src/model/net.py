@@ -86,8 +86,10 @@ def avg_f1_score_gpu(
     precision = true_pos / (true_pos + false_pos + eps)
     recall = true_pos / (true_pos + false_neg + eps)
     avg_f1 = 2 * (precision * recall) / (precision + recall + eps)
+    wts = label_ohe.sum(0)
+    wtd_macro_f1 = (avg_f1 * wts).sum() / wts.sum()
 
-    return avg_f1.mean().item()
+    return wtd_macro_f1.item()
 
 
 def confusion_matrix(
