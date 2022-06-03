@@ -20,8 +20,7 @@ format:
 	mypy src tests
 
 lint:
-	pylint -j 6 src tests --ignore .ipynb_checkpoints\
-		-d E1101,E0611,W0511,C0413,R0801,R0913,R0914 # Beam and fixme
+	pylint -j 6 src tests
 
 clean:
 	rm -r __pycache__ .coverage .mypy_cache .pytest_cache *.log .ipynb_checkpoints dist
