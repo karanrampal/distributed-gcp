@@ -103,10 +103,11 @@ def confusion_matrix(
     Returns:
         Confusion matrix as a tensor
     """
-    conf_mat = torch.zeros((1, 1, num_classes, num_classes), dtype=torch.int64)
+    num = labels.shape[0]
+    conf_mat = torch.zeros((1, num, num_classes, num_classes), dtype=torch.int64)
     preds = (outputs).argmax(dim=1).to(torch.int64)
-    conf_mat[0, 0, labels, preds] += 1
-    return conf_mat
+    conf_mat[0, range(num), labels, preds] = 1
+    return conf_mat.sum(1, keepdim=True)
 
 
 # Maintain all metrics required during training and evaluation.
