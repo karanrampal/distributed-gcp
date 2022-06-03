@@ -12,6 +12,7 @@ dependencies:
   # Scipy stack
   - numpy
   - matplotlib
+  - scikit-learn
   - pandas
   # Deep learning
   - pytorch
