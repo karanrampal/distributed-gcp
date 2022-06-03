@@ -9,6 +9,7 @@ dependencies:
   - ipykernel
   - gcsfs
   - pyyaml
+  - types-pyyaml
   # Scipy stack
   - numpy
   - matplotlib
