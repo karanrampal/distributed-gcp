@@ -12,7 +12,7 @@ build:
 	python -m build
 
 test:
-	pytest -vv --cov
+	pytest -vv --cov --disable-warnings
 
 format:
 	black src tests
