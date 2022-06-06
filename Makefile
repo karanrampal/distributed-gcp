@@ -1,14 +1,18 @@
 SHELL := /bin/bash
-CONDAENV := environment.yml
+CONDAENV := environment.yaml
 
-install: environment.yml
+install: $(CONDAENV)
 	conda env create -f $(CONDAENV)
+
+install_ci: requirements.txt
+	pip install --upgrade pip &&\
+		pip install -r requirements.txt
 
 build:
 	python -m build
 
 test:
-	pytest -vv --cov
+	pytest -vv --cov --disable-warnings
 
 format:
 	black src tests
@@ -19,7 +23,7 @@ lint:
 	pylint -j 6 src tests
 
 clean:
-	rm -rf __pycache__ .coverage .mypy_cache .pytest_cache *.log
+	rm -r __pycache__ .coverage .mypy_cache .pytest_cache *.log .ipynb_checkpoints dist
 
 all: install lint test
 
