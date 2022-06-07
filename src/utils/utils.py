@@ -8,6 +8,7 @@ from collections import deque
 from typing import Any, Deque, Dict, Optional, Union
 
 import torch
+import torch.distributed as dist
 import yaml
 from torch.optim import Optimizer
 
@@ -35,6 +36,10 @@ class Params:
             raise TypeError(
                 "Input should either be a dictionary or a string path to a config file!"
             )
+
+    def __str__(self) -> str:
+        """Print instance"""
+        return str(self.__dict__)
 
 
 class SmoothedValue:
@@ -161,3 +166,17 @@ def save_dict_to_yaml(data: Dict[str, float], yml_path: str) -> None:
     with open(yml_path, "w", encoding="utf-8") as fptr:
         data = {k: float(v) for k, v in data.items()}
         yaml.safe_dump(data, fptr)
+
+
+def setup_distributed(params: Params) -> None:
+    """Setup distributed compute
+    Args:
+        params: Hyperparameters
+    """
+    params.distributed = True
+    dist.init_process_group(
+        backend="nccl",
+        init_method="env://",
+        world_size=params.world_size,
+        rank=params.rank)
+    dist.barrier()

@@ -10,9 +10,10 @@ cd ../
 # Set variables
 proj="smle-attribution-d237"
 region="europe-west4"
+service_account="awesomeserviceaccount@smle-attribution-d237.iam.gserviceaccount.com"
 
 job_name="fit_$(date +%Y%m%d_%H%M%S)"
-image_uri="gcr.io/cloud-ml-public/training/pytorch-gpu.1-11"
+image_uri="gcr.io/cloud-ml-public/training/pytorch-gpu.1-11:latest"
 job_dir="gs://attribute-models-bucket/fit-model"
 package="${job_dir}/AttributePrediction-0.0.1-py3-none-any.whl"
 tier="basic"
