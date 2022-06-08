@@ -177,7 +177,7 @@ def setup_distributed(params: Params) -> None:
     if params.cuda:
         params.local_rank = params.rank % torch.cuda.device_count()
 
-    if params.wordl_size > 1:
+    if params.world_size > 1:
         params.distributed = True
 
         dist.init_process_group(
