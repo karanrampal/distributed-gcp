@@ -173,10 +173,43 @@ def setup_distributed(params: Params) -> None:
     Args:
         params: Hyperparameters
     """
-    params.distributed = True
-    dist.init_process_group(
-        backend="nccl",
-        init_method="env://",
-        world_size=params.world_size,
-        rank=params.rank)
-    dist.barrier()
+    params.distributed = False
+    if params.cuda:
+        params.local_rank = params.rank % torch.cuda.device_count()
+
+    if params.wordl_size > 1:
+        params.distributed = True
+
+        dist.init_process_group(
+            backend="nccl",
+            init_method="env://",
+            world_size=params.world_size,
+            rank=params.rank,
+        )
+        dist.barrier()
+
+
+def reduce_dict(input_dict: Dict[str, float], average: bool = True) -> Dict[str, float]:
+    """Reduce dictionary across all processes
+    Args:
+        input_dict: all the values will be reduced
+        average: whether to do average or sum
+    Returns:
+        Reduce dictionary
+    """
+    world_size = dist.get_world_size()
+    if world_size < 2:
+        return input_dict
+    with torch.inference_mode():
+        names = []
+        vals = []
+        # sort the keys so that they are consistent across processes
+        for k in sorted(input_dict.keys()):
+            names.append(k)
+            vals.append(input_dict[k])
+        values = torch.as_tensor(vals)
+        dist.all_reduce(values)
+        if average:
+            values /= world_size
+        reduced_dict = {k: v.item() for k, v in zip(names, values)}
+    return reduced_dict
