@@ -4,10 +4,11 @@
 import argparse
 import logging
 import os
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Union
 
 import numpy as np
 import torch
+from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -36,14 +37,20 @@ def args_parser() -> argparse.Namespace:
         help="name of the file in --model_dir containing weights to load",
     )
     parser.add_argument(
-        "--distributed",
-        default=False,
-        type=bool,
-        help="Whether to use distributed computing",
+        "--world_size",
+        type=int,
+        default=os.environ.get("WORLD_SIZE", 1),
+        help="The total number of nodes in the cluster",
+    )
+    parser.add_argument(
+        "--rank",
+        type=int,
+        default=os.environ.get("RANK", 0),
+        help="Identifier for each node",
     )
     parser.add_argument("--height", default=224, type=int, help="Image height")
     parser.add_argument("-w", "--width", default=224, type=int, help="Image width")
-    parser.add_argument("--batch_size", default=256, type=int, help="Batch size")
+    parser.add_argument("--batch_size", default=128, type=int, help="Batch size")
     parser.add_argument(
         "--num_workers", default=2, type=int, help="Number of workers to load data"
     )
@@ -93,6 +100,8 @@ def evaluate(
                 metric: metrics[metric](output, labels) for metric in metrics
             }
             summary_batch["loss"] = loss.item()
+            if params.distributed:
+                summary_batch = utils.reduce_dict(summary_batch)
             summ.append(summary_batch)
 
             writer.add_scalars("test", summary_batch, epoch * len(dataloader) + i)
@@ -111,13 +120,15 @@ def main() -> None:
     writer = SummaryWriter(os.getenv("AIP_TENSORBOARD_LOG_DIR"))
 
     params.cuda = torch.cuda.is_available()
+    utils.setup_distributed(params)
 
     torch.manual_seed(230)
     if params.cuda:
         torch.cuda.manual_seed(230)
-        params.device = "cuda:0"
+        params.device = f"cuda:{params.rank}"
     else:
         params.device = "cpu"
+    print(f"Configs: {params}")
 
     utils.set_logger()
 
@@ -128,9 +139,11 @@ def main() -> None:
 
     logging.info("- done.")
 
-    model = Net(params)
+    model: Union[DistributedDataParallel, torch.nn.Module] = Net(params)
     if params.cuda:
         model = model.to(params.device)
+    if params.distributed:
+        model = DistributedDataParallel(model, device_ids=[params.local_rank])
     writer.add_graph(model, next(iter(test_dl))[0].to(params.device))
 
     criterion = loss_fn
@@ -138,9 +151,10 @@ def main() -> None:
 
     logging.info("Starting evaluation")
 
-    utils.load_checkpoint(
-        os.path.join(args.model_dir, args.restore_file + ".pth.tar"), model
-    )
+    if params.rank == 0:
+        utils.load_checkpoint(
+            os.path.join(args.model_dir, args.restore_file + ".pth.tar"), model
+        )
 
     evaluate(model, criterion, test_dl, metrics, params, writer, 0)
 

@@ -4,11 +4,12 @@
 import argparse
 import logging
 import os
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional, Union
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+from torch.nn.parallel import DistributedDataParallel
+from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
 from dataloader.data_loader import get_dataloader
@@ -43,10 +44,16 @@ def args_parser() -> argparse.Namespace:
         help="Optional, name of the file in --model_dir containing weights to restore",
     )
     parser.add_argument(
-        "--distributed",
-        default=False,
-        type=bool,
-        help="Whether to use distributed computing",
+        "--world_size",
+        type=int,
+        default=os.environ.get("WORLD_SIZE", 1),
+        help="The total number of nodes in the cluster",
+    )
+    parser.add_argument(
+        "--rank",
+        type=int,
+        default=os.environ.get("RANK", 0),
+        help="Identifier for each node",
     )
     parser.add_argument("--height", default=224, type=int, help="Image height")
     parser.add_argument("-w", "--width", default=224, type=int, help="Image width")
@@ -136,7 +143,6 @@ def train(
     """
     model.train()
     summ = []
-    loss_avg = utils.SmoothedValue(window_size=1, fmt="{global_avg:.3f}")
 
     for i, (train_batch, labels) in enumerate(dataloader):
         if params.cuda:
@@ -159,11 +165,11 @@ def train(
                 metric: metrics[metric](output_batch, labels) for metric in metrics
             }
             summary_batch["loss"] = loss.item()
+            if params.distributed:
+                summary_batch = utils.reduce_dict(summary_batch)
             summ.append(summary_batch)
 
             writer.add_scalars("train", summary_batch, epoch * len(dataloader) + i)
-
-        loss_avg.update(loss.item())
 
     scheduler.step()
     metrics_mean = {metric: np.mean([x[metric] for x in summ]) for metric in summ[0]}
@@ -174,6 +180,7 @@ def train(
 def train_and_evaluate(
     model: torch.nn.Module,
     train_dataloader: DataLoader,
+    train_sampler: Optional[DistributedSampler],
     val_dataloader: DataLoader,
     optimizer: torch.optim.Optimizer,
     criterion: Callable,
@@ -186,6 +193,7 @@ def train_and_evaluate(
     Args:
         model: Neural network
         train_dataloader: Training dataloader
+        train_dampler: Distributed data sampler
         val_dataloader: Validation dataloader
         optimizer: Optimizer for parameters of model
         criterion: A function to compute the loss for the batch
@@ -202,6 +210,8 @@ def train_and_evaluate(
     best_val_acc = 0.0
 
     for epoch in range(params.num_epochs):
+        if train_sampler:
+            train_sampler.set_epoch(epoch)
         logging.info("Epoch %d / %d", epoch + 1, params.num_epochs)
 
         train(
@@ -223,25 +233,28 @@ def train_and_evaluate(
         val_acc = val_metrics.get("f1-score", 0.0)
         is_best = val_acc > best_val_acc
 
-        utils.save_checkpoint(
-            {
-                "epoch": epoch + 1,
-                "state_dict": model.state_dict(),
-                "optim_dict": optimizer.state_dict(),
-            },
-            is_best=is_best,
-            checkpoint=params.model_dir,
-        )
+        if params.rank == 0:
+            utils.save_checkpoint(
+                {
+                    "epoch": epoch + 1,
+                    "state_dict": model.state_dict(),
+                    "optim_dict": optimizer.state_dict(),
+                },
+                is_best=is_best,
+                checkpoint=params.model_dir,
+            )
 
         if is_best:
             logging.info("- Found new best accuracy")
             best_val_acc = val_acc
 
             best_yml_path = os.path.join(params.model_dir, "metrics_val_best.yaml")
-            utils.save_dict_to_yaml(val_metrics, best_yml_path)
+            if params.rank == 0:
+                utils.save_dict_to_yaml(val_metrics, best_yml_path)
 
     last_yml_path = os.path.join(params.model_dir, "metrics_val_last.yaml")
-    utils.save_dict_to_yaml(val_metrics, last_yml_path)
+    if params.rank == 0:
+        utils.save_dict_to_yaml(val_metrics, last_yml_path)
 
 
 def main() -> None:
@@ -252,27 +265,31 @@ def main() -> None:
     writer = SummaryWriter(os.getenv("AIP_TENSORBOARD_LOG_DIR"))
 
     params.cuda = torch.cuda.is_available()
+    utils.setup_distributed(params)
 
     torch.manual_seed(230)
     if params.cuda:
         torch.cuda.manual_seed(230)
-        params.device = "cuda:0"
+        params.device = f"cuda:{params.rank}"
     else:
         params.device = "cpu"
+    print(f"Configs: {params}")
 
     utils.set_logger()
 
     logging.info("Loading the datasets...")
 
     dataloaders = get_dataloader(["train", "val"], params)
-    train_dl, _ = dataloaders["train"]
+    train_dl, train_sampler = dataloaders["train"]
     val_dl, _ = dataloaders["val"]
 
     logging.info("- done.")
 
-    model = Net(params)
+    model: Union[DistributedDataParallel, torch.nn.Module] = Net(params)
     if params.cuda:
         model = model.to(params.device)
+    if params.distributed:
+        model = DistributedDataParallel(model, device_ids=[params.local_rank])
     writer.add_graph(model, next(iter(train_dl))[0].to(params.device))
 
     optimizer = torch.optim.Adam(
@@ -296,6 +313,7 @@ def main() -> None:
     train_and_evaluate(
         model,
         train_dl,
+        train_sampler,
         val_dl,
         optimizer,
         criterion,
