@@ -50,7 +50,7 @@ def loss_fn(outputs: torch.Tensor, ground_truth: torch.Tensor) -> torch.Tensor:
     return loss
 
 
-def avg_acc_gpu(outputs: torch.Tensor, labels: torch.Tensor) -> float:
+def avg_acc_gpu(outputs: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """Compute the accuracy, given the outputs and labels for all images.
     Args:
         outputs: Logits of the network
@@ -60,12 +60,12 @@ def avg_acc_gpu(outputs: torch.Tensor, labels: torch.Tensor) -> float:
     """
     preds = outputs.argmax(dim=1).to(torch.int64)
     avg_acc = (preds == labels).to(torch.float32).mean()
-    return avg_acc.item()
+    return avg_acc
 
 
 def avg_f1_score_gpu(
     outputs: torch.Tensor, labels: torch.Tensor, num_classes: int, eps: float = 1e-7
-) -> float:
+) -> torch.Tensor:
     """Compute the F1 score, given the outputs and labels for all images.
     Args:
         outputs: Logits of the network
@@ -89,7 +89,7 @@ def avg_f1_score_gpu(
     wts = label_ohe.sum(0)
     wtd_macro_f1 = (avg_f1 * wts).sum() / wts.sum()
 
-    return wtd_macro_f1.item()
+    return wtd_macro_f1
 
 
 def confusion_matrix(
@@ -110,7 +110,6 @@ def confusion_matrix(
     return conf_mat.sum(1, keepdim=True)
 
 
-# Maintain all metrics required during training and evaluation.
 def get_metrics(params: Params) -> Dict[str, Callable]:
     """Returns a dictionary of all the metrics to be used
     Args:
