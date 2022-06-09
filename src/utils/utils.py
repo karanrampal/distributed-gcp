@@ -174,10 +174,11 @@ def setup_distributed(params: Params) -> None:
         params: Hyperparameters
     """
     params.distributed = False
+    device_count = torch.cuda.device_count()
     if params.cuda:
-        params.local_rank = params.rank % torch.cuda.device_count()
+        params.local_rank = params.rank % device_count
 
-    if params.world_size > 1:
+    if (params.world_size > 1) or (device_count > 1):
         params.distributed = True
 
         dist.init_process_group(
