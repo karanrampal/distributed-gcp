@@ -34,3 +34,4 @@ dependencies:
   - pip:
     - torch-tb-profiler
     - apache-beam[gcp,docs,test,dataframe]
+    - google-cloud-aiplatform
