@@ -99,7 +99,7 @@ def evaluate(
             summary_batch = {
                 metric: metrics[metric](output, labels) for metric in metrics
             }
-            summary_batch["loss"] = loss.item()
+            summary_batch["loss"] = loss.detach()
             if params.distributed:
                 summary_batch = utils.reduce_dict(summary_batch)
             summ.append(summary_batch)
@@ -125,7 +125,7 @@ def main() -> None:
     torch.manual_seed(230)
     if params.cuda:
         torch.cuda.manual_seed(230)
-        params.device = f"cuda:{params.rank}"
+        params.device = f"cuda:{params.local_rank}"
     else:
         params.device = "cpu"
     print(f"Configs: {params}")
