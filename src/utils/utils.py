@@ -189,7 +189,9 @@ def setup_distributed(params: Params) -> None:
         dist.barrier()
 
 
-def reduce_dict(input_dict: Dict[str, float], average: bool = True) -> Dict[str, float]:
+def reduce_dict(
+    input_dict: Dict[str, torch.Tensor], average: bool = True
+) -> Dict[str, torch.Tensor]:
     """Reduce dictionary across all processes
     Args:
         input_dict: all the values will be reduced
@@ -203,11 +205,10 @@ def reduce_dict(input_dict: Dict[str, float], average: bool = True) -> Dict[str,
     with torch.inference_mode():
         names = []
         vals = []
-        # sort the keys so that they are consistent across processes
         for k in sorted(input_dict.keys()):
             names.append(k)
             vals.append(input_dict[k])
-        values = torch.as_tensor(vals)
+        values = torch.stack(vals, dim=0)
         dist.all_reduce(values)
         if average:
             values /= world_size
