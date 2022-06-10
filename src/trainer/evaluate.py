@@ -106,7 +106,9 @@ def evaluate(
 
             writer.add_scalars("test", summary_batch, epoch * len(dataloader) + i)
 
-    metrics_mean = {metric: np.mean([x[metric] for x in summ]) for metric in summ[0]}
+    metrics_mean = {
+        metric: np.mean([x[metric].item() for x in summ]) for metric in summ[0]
+    }
     metrics_string = " ; ".join(f"{k}: {v:05.3f}" for k, v in metrics_mean.items())
     logging.info("- Eval metrics : %s", metrics_string)
     return metrics_mean

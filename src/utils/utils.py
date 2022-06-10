@@ -178,7 +178,7 @@ def setup_distributed(params: Params) -> None:
     if params.cuda:
         params.local_rank = params.rank % device_count
 
-    if (params.world_size > 1) or (device_count > 1):
+    if params.world_size > 1:
         params.distributed = True
 
         dist.init_process_group(
@@ -213,5 +213,5 @@ def reduce_dict(
         dist.all_reduce(values)
         if average:
             values /= world_size
-        reduced_dict = {k: v.item() for k, v in zip(names, values)}
+        reduced_dict = dict(zip(names, values))
     return reduced_dict

@@ -172,7 +172,9 @@ def train(
             writer.add_scalars("train", summary_batch, epoch * len(dataloader) + i)
 
     scheduler.step()
-    metrics_mean = {metric: np.mean([x[metric] for x in summ]) for metric in summ[0]}
+    metrics_mean = {
+        metric: np.mean([x[metric].item() for x in summ]) for metric in summ[0]
+    }
     metrics_string = " ; ".join(f"{k}: {v:05.3f}" for k, v in metrics_mean.items())
     logging.info("- Train metrics: %s", metrics_string)
 
