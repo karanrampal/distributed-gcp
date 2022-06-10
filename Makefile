@@ -23,7 +23,7 @@ lint:
 	pylint -j 6 src tests
 
 clean:
-	rm -r __pycache__ .coverage .mypy_cache .pytest_cache *.log .ipynb_checkpoints dist
+	rm -r .coverage .mypy_cache .pytest_cache .ipynb_checkpoints dist
 
 all: install lint test
 
