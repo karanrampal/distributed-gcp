@@ -169,7 +169,8 @@ def train(
                 summary_batch = utils.reduce_dict(summary_batch)
             summ.append(summary_batch)
 
-            writer.add_scalars("train", summary_batch, epoch * len(dataloader) + i)
+            tmp = {k: v.item() for k, v in summary_batch.items()}
+            writer.add_scalars("train", tmp, epoch * len(dataloader) + i)
 
     scheduler.step()
     metrics_mean = {
@@ -288,11 +289,11 @@ def main() -> None:
     logging.info("- done.")
 
     model: Union[DistributedDataParallel, torch.nn.Module] = Net(params)
+    writer.add_graph(model, next(iter(train_dl))[0])
     if params.cuda:
         model = model.to(params.device)
     if params.distributed:
         model = DistributedDataParallel(model, device_ids=[params.local_rank])
-    writer.add_graph(model, next(iter(train_dl))[0].to(params.device))
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=params.learning_rate, weight_decay=params.decay

@@ -104,7 +104,8 @@ def evaluate(
                 summary_batch = utils.reduce_dict(summary_batch)
             summ.append(summary_batch)
 
-            writer.add_scalars("test", summary_batch, epoch * len(dataloader) + i)
+            tmp = {k: v.item() for k, v in summary_batch.items()}
+            writer.add_scalars("test", tmp, epoch * len(dataloader) + i)
 
     metrics_mean = {
         metric: np.mean([x[metric].item() for x in summ]) for metric in summ[0]
@@ -142,11 +143,11 @@ def main() -> None:
     logging.info("- done.")
 
     model: Union[DistributedDataParallel, torch.nn.Module] = Net(params)
+    writer.add_graph(model, next(iter(test_dl))[0])
     if params.cuda:
         model = model.to(params.device)
     if params.distributed:
         model = DistributedDataParallel(model, device_ids=[params.local_rank])
-    writer.add_graph(model, next(iter(test_dl))[0].to(params.device))
 
     criterion = loss_fn
     metrics = get_metrics(params)
