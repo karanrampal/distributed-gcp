@@ -1,0 +1,25 @@
+# Model configurations
+num_classes: 9
+
+# Data augmentataion
+flip: 0.5
+degree: 0
+brightness: 0.3
+contrast: 1.5
+saturation: 1.5
+hue: 0.1
+
+# General configurations
+batch_size: 64
+height: 224
+width: 224
+num_epochs: 10
+learning_rate: 0.001
+momentum: 0.9
+decay: 0.0
+policy: "steps"
+steps: [5, 10]
+dropout: 0.5
+save_summary_steps: 100
+num_workers: 4
+pin_memory: True
