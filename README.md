@@ -3,6 +3,10 @@
 # Attribute Prediction
 Detect attributes of the dataset. This dataset consists of images by designers and our goal is to find attributes of these images.
 
+Multi GPU and multi nodes are supported using DistributedDataParallel. GCP is used for training and development.
+
+Apache Beam is used for dataset creation and DataFlow runner is used as backend.
+
 ## Directory structure
 Structure of the project
 ```
@@ -14,41 +18,42 @@ configs/
 dist/
     AttributePrediction-0.0.1-py3-none-any.whl
     AttributePrediction-0.0.1.tar.gz
-experiments/
-    base_model/
-        runs/
-            train/
-                events.out.tfevents
-        best.pth.tar
-        last.pth.tar
-        params.yml
-        train.log
 notebooks/
-    main.ipynb
+    create_dataset.ipynb
+    training_sdk.ipynb
+    visualize_dataset.ipynb
 scripts/
-    upload_configs.sh
-    upload_notebooks.sh
-    uploadwhl.sh
+    run_training.sh
+    run_create_dataset_dataflow.sh
 src/
-    model/
+    dataloader/
         __init__.py
         data_loader.py
+    model/
+        __init__.py
         net.py
+    trainer/
+        __init__.py
+        train.py
+        evaluate.py
     utils/
         __init__.py
-        dist_utils.py
-        download_utils.py
+        vis_utils.py
         utils.py
-    create_labels.py
-    evaluate.py
-    train.py
+    create_castors.py
+    create_dataset_dataflow.py
+    create_dataset.py
 tests/
     __init__.py
+    test_metrics.yp
 .gitignore
-environments.yml
+environments.yaml
 Makefile
+mypy.ini
+.pylintrc
 pyproject.toml
 README.md
+requirements.txt
 setup.cfg
 ```
 
@@ -68,11 +73,11 @@ pip install <path to wheel file>
 ```
 Then create the dataset by running the following command (this needs to be done only once, and can be done at anytime after cloning this repo),
 ```
-python create_labels.py -r <path to root dir>
+python create_dataset.py -r <path to root dir>
 ```
 Then to start training on a single node with multiple gpu's we can do the following,
 ```
-python <path to train.py> --args1 --args2
+python -m trainer.train --args1 --args2
 ```
 
 ## Requirements
