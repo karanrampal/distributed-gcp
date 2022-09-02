@@ -1,4 +1,4 @@
-![Attribute Prediction](https://github.com/hm-group/attribute-prediction/actions/workflows/main.yaml/badge.svg)
+![Attribute Prediction](https://github.com/karanrampal/distributed-gcp/actions/workflows/main.yaml/badge.svg)
 
 # Attribute Prediction
 Detect attributes of the dataset. This dataset consists of images by designers and our goal is to find attributes of these images.
